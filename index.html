@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#14532d">
+<title>HydroPlan – วางแผนวันปลูกผักไฮโดร</title>
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="HydroPlan">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --g900:#14532d; --g800:#166534; --g700:#15803d; --g600:#16a34a; --g500:#22c55e;
+    --g100:#dcfce7; --g50:#f0fdf4;
+    --ink:#1f2937; --muted:#6b7280; --line:#e5e7eb; --bg:#f3f7f4;
+    --card:#ffffff; --warn:#f59e0b; --warnbg:#fffbeb; --red:#ef4444; --redbg:#fef2f2;
+    --blue:#3b82f6; --radius:18px;
+    --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(20,83,45,.08);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Prompt',system-ui,sans-serif; color:var(--ink); background:var(--bg);
+    background-image:radial-gradient(circle at 10% 0%,#dcfce7 0,transparent 40%),radial-gradient(circle at 100% 20%,#ecfccb 0,transparent 35%);
+    background-attachment:fixed; font-size:15px; line-height:1.5;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+  button{cursor:pointer}
+
+  /* ---------- Header ---------- */
+  header{
+    background:linear-gradient(135deg,var(--g900),var(--g700));
+    color:#fff; padding:18px 20px 70px; position:relative;
+  }
+  .head-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .logo{width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,.15);display:grid;place-items:center;font-size:28px;backdrop-filter:blur(4px)}
+  .brand h1{margin:0;font-size:22px;font-weight:600;letter-spacing:.2px}
+  .brand p{margin:0;font-size:13px;opacity:.85;font-weight:300}
+  .sync{margin-left:auto;display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);padding:6px 12px;border-radius:999px;font-size:13px}
+  .install-btn{margin-left:auto;border:0;background:#fff;color:var(--g900);font-weight:600;padding:7px 14px;border-radius:999px;font-size:13px;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+  .install-btn + .sync{margin-left:0}
+  .ios-tip{position:fixed;left:12px;right:12px;bottom:16px;background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.25);padding:16px;z-index:98;font-size:14px}
+  .ios-tip b{color:var(--g800)}
+  .ios-tip .x{position:absolute;right:10px;top:8px;border:0;background:none;font-size:20px;color:var(--muted)}
+  .dot{width:9px;height:9px;border-radius:50%;background:#fbbf24;box-shadow:0 0 0 3px rgba(251,191,36,.3)}
+  .dot.on{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.3)}
+  .dot.off{background:#f87171;box-shadow:0 0 0 3px rgba(248,113,113,.3)}
+
+  /* ---------- Layout ---------- */
+  main{max-width:1200px;margin:-52px auto 0;padding:0 14px 40px;display:grid;grid-template-columns:420px 1fr;gap:18px;align-items:start;position:relative}
+  @media (max-width:960px){ main{grid-template-columns:minmax(0,1fr)} }
+  main > section{min-width:0}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+  .sticky{position:sticky;top:14px}
+  @media (max-width:960px){ .sticky{position:static} }
+  .card h2{margin:0 0 12px;font-size:18px;font-weight:600;display:flex;align-items:center;gap:8px}
+  .sub{color:var(--muted);font-size:13px}
+
+  /* ---------- Segmented ---------- */
+  .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--g50);border:1px solid var(--g100);border-radius:14px;padding:4px;gap:4px;margin-bottom:14px}
+  .seg button{border:0;background:transparent;padding:9px 6px;border-radius:10px;font-weight:500;color:var(--g800);font-size:14px;transition:.2s}
+  .seg button.active{background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.08);color:var(--g900)}
+
+  label.lbl{display:block;font-size:13px;color:var(--muted);margin:10px 0 6px;font-weight:500}
+  .input{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;background:#fff;outline:none;transition:.15s}
+  .input:focus{border-color:var(--g500);box-shadow:0 0 0 4px rgba(34,197,94,.15)}
+  input[type=date].input{font-size:17px;font-weight:500}
+  .date-th{margin-top:6px;font-size:14px;color:var(--g800);font-weight:500}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .chip{border:1px solid var(--line);background:#fff;padding:5px 11px;border-radius:999px;font-size:12.5px;color:var(--muted);transition:.15s}
+  .chip:hover{border-color:var(--g500);color:var(--g700)}
+  .chip.active{background:var(--g700);border-color:var(--g700);color:#fff}
+
+  /* ---------- Summary ---------- */
+  .summary{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:16px 0 6px}
+  .sbox{border-radius:14px;padding:12px;position:relative;overflow:hidden}
+  .sbox.seed{background:linear-gradient(135deg,#fef9c3,#fef3c7)}
+  .sbox.harv{background:linear-gradient(135deg,#dcfce7,#bbf7d0)}
+  .sbox .k{font-size:12px;color:#57534e}
+  .sbox .v{font-size:19px;font-weight:600;line-height:1.3}
+  .sbox .r{font-size:12px;color:#57534e}
+  .sbox .ic{position:absolute;right:8px;top:6px;font-size:26px;opacity:.6}
+  @media (max-width:420px){ .sbox .v{font-size:16px} .sbox .ic{font-size:20px} }
+  .total{text-align:center;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .total b{color:var(--g800)}
+
+  .alert{border-radius:12px;padding:10px 12px;font-size:13.5px;margin:10px 0;display:flex;gap:8px}
+  .alert.warn{background:var(--warnbg);border:1px solid #fde68a;color:#92400e}
+  .alert.bad{background:var(--redbg);border:1px solid #fecaca;color:#991b1b}
+  .alert.ok{background:var(--g50);border:1px solid var(--g100);color:var(--g800)}
+  .alert button{border:0;background:none;color:inherit;text-decoration:underline;padding:0;font-weight:600}
+
+  /* ---------- Timeline ---------- */
+  .tl{list-style:none;margin:10px 0 0;padding:0;position:relative}
+  .tl li{display:grid;grid-template-columns:38px 1fr auto;gap:10px;align-items:center;padding:8px 0;position:relative}
+  .tl li:not(:last-child)::after{content:"";position:absolute;left:18px;top:44px;bottom:-8px;width:2px;background:repeating-linear-gradient(var(--g100) 0 4px,transparent 4px 8px)}
+  .tl .ico{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:19px;background:var(--g50);border:1px solid var(--g100);z-index:1}
+  .tl li.past .ico{filter:grayscale(.6);opacity:.65}
+  .tl li.now .ico{background:var(--g600);border-color:var(--g600);box-shadow:0 0 0 4px rgba(34,197,94,.2)}
+  .tl .t{font-weight:500;font-size:14.5px}
+  .tl .d{font-size:12.5px;color:var(--muted)}
+  .tl .badge{font-size:11.5px;background:var(--g50);color:var(--g800);padding:3px 8px;border-radius:999px;white-space:nowrap;border:1px solid var(--g100)}
+  .tl .rel{font-size:11.5px;color:var(--muted);text-align:right}
+
+  .btns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+  .btn{border:0;border-radius:12px;padding:11px 16px;font-weight:500;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:.15s}
+  .btn:active{transform:scale(.98)}
+  .btn.pri{background:linear-gradient(135deg,var(--g700),var(--g600));color:#fff;flex:1;box-shadow:0 4px 14px rgba(22,163,74,.35)}
+  .btn.pri:hover{filter:brightness(1.05)}
+  .btn.sec{background:var(--g50);color:var(--g800);border:1px solid var(--g100)}
+  .btn.ghost{background:#fff;border:1px solid var(--line);color:var(--ink)}
+  .btn.danger{background:var(--redbg);color:var(--red);border:1px solid #fecaca}
+  .btn.sm{padding:6px 10px;font-size:13px;border-radius:10px}
+  .row2{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+  details.more summary{cursor:pointer;color:var(--g700);font-size:13.5px;margin-top:12px;font-weight:500}
+
+  /* ---------- Tabs ---------- */
+  .tabs{display:flex;gap:6px;background:var(--card);padding:6px;border-radius:16px;box-shadow:var(--shadow);margin-bottom:14px;overflow-x:auto;scrollbar-width:none}
+  .tabs::-webkit-scrollbar{display:none}
+  .tabs button{flex:1;border:0;background:transparent;padding:10px 12px;border-radius:12px;font-weight:500;color:var(--muted);white-space:nowrap;display:flex;align-items:center;justify-content:center;gap:6px}
+  .tabs button.active{background:var(--g700);color:#fff}
+  .tabs .cnt{background:rgba(0,0,0,.08);border-radius:999px;padding:0 7px;font-size:12px}
+  .tabs button.active .cnt{background:rgba(255,255,255,.25)}
+  .panel{display:none}
+  .panel.active{display:block;animation:fade .25s}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  /* ---------- Tasks ---------- */
+  .group-h{font-size:13px;font-weight:600;color:var(--muted);margin:16px 0 8px;display:flex;align-items:center;gap:8px}
+  .group-h:first-child{margin-top:0}
+  .group-h .pill{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--g100);color:var(--g800)}
+  .group-h.red{color:var(--red)} .group-h.red .pill{background:var(--redbg);color:var(--red)}
+  .task{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid var(--line);border-radius:14px;margin-bottom:8px;background:#fff;transition:.15s;border-left:5px solid var(--c,#22c55e)}
+  .task.done{opacity:.55}
+  .task.done .tt{text-decoration:line-through}
+  .task .tt{font-weight:500}
+  .task .tm{font-size:12.5px;color:var(--muted)}
+  .chk{appearance:none;width:26px;height:26px;border:2px solid #cbd5e1;border-radius:8px;flex-shrink:0;display:grid;place-items:center;cursor:pointer;transition:.15s;background:#fff}
+  .chk:checked{background:var(--g600);border-color:var(--g600)}
+  .chk:checked::after{content:"✓";color:#fff;font-weight:700;font-size:15px}
+  .task .ico2{font-size:22px}
+  .task .when{margin-left:auto;text-align:right;font-size:12.5px;color:var(--muted);white-space:nowrap}
+  .empty{text-align:center;padding:36px 10px;color:var(--muted)}
+  .empty .e{font-size:44px}
+
+  /* ---------- Batches ---------- */
+  .filters{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap}
+  .batch{border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px;background:#fff;position:relative;overflow:hidden}
+  .batch::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
+  .b-top{display:flex;gap:10px;align-items:flex-start}
+  .b-name{font-weight:600;font-size:16px}
+  .b-meta{font-size:12.5px;color:var(--muted)}
+  .b-stage{margin-left:auto;text-align:right}
+  .tag{display:inline-block;font-size:12px;padding:3px 10px;border-radius:999px;background:var(--g50);color:var(--g800);border:1px solid var(--g100);white-space:nowrap}
+  .tag.wait{background:#eff6ff;color:#1d4ed8;border-color:#bfdbfe}
+  .tag.harv{background:#fef9c3;color:#854d0e;border-color:#fde68a}
+  .tag.doneh{background:#f3f4f6;color:#4b5563;border-color:#e5e7eb}
+  .prog{height:9px;background:#f1f5f9;border-radius:999px;margin:12px 0 6px;overflow:hidden;display:flex}
+  .prog span{display:block;height:100%}
+  .prog-l{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+  .b-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+  .b-detail{margin-top:10px;border-top:1px dashed var(--line);padding-top:6px}
+  .b-detail .task{margin-bottom:6px;padding:9px 10px}
+
+  /* ---------- Calendar ---------- */
+  .cal-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+  .cal-h h3{margin:0;font-size:17px;font-weight:600;flex:1;text-align:center}
+  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+  .cal .wd{text-align:center;font-size:12px;color:var(--muted);padding:4px 0;font-weight:500}
+  .cell{min-height:86px;border:1px solid var(--line);border-radius:10px;padding:4px;background:#fff;cursor:pointer;overflow:hidden;transition:.15s}
+  .cell:hover{border-color:var(--g500)}
+  .cell.out{background:#fafafa;opacity:.5}
+  .cell.today{border:2px solid var(--g600);background:var(--g50)}
+  .cell.sel{box-shadow:0 0 0 3px rgba(34,197,94,.35)}
+  .cell .n{font-size:12.5px;font-weight:600}
+  .ev{font-size:10.5px;border-radius:5px;padding:1px 4px;margin-top:2px;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dots{display:none;gap:3px;flex-wrap:wrap;margin-top:4px}
+  .dots i{width:7px;height:7px;border-radius:50%;display:block}
+  @media (max-width:640px){
+    .cell{min-height:52px}
+    .cell .ev{display:none}
+    .dots{display:flex}
+  }
+  .day-detail{margin-top:14px}
+
+  /* ---------- Settings ---------- */
+  .st-row{display:grid;grid-template-columns:56px 1fr 84px auto;gap:8px;align-items:center;padding:8px;border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:#fff}
+  .st-row .input{padding:8px 10px}
+  .st-row .icon-in{text-align:center;font-size:20px;padding:6px}
+  .st-ctrl{display:flex;gap:4px}
+  .st-ctrl button{border:1px solid var(--line);background:#fff;border-radius:8px;width:32px;height:32px}
+  .st-ctrl button:hover{border-color:var(--g500)}
+  @media (max-width:520px){
+    .st-row{grid-template-columns:48px 1fr 70px}
+    .st-ctrl{grid-column:1/-1;justify-content:flex-end}
+  }
+
+  /* ---------- Toast ---------- */
+  #toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);background:#111827;color:#fff;padding:11px 18px;border-radius:12px;font-size:14px;transition:.3s;z-index:99;box-shadow:0 10px 30px rgba(0,0,0,.25);max-width:90vw}
+  #toast.show{transform:translateX(-50%) translateY(0)}
+  /* ---------- Items / Loss ---------- */
+  .it-row{display:grid;grid-template-columns:1fr 92px 38px;gap:6px;margin-bottom:6px}
+  .it-row .btn{padding:0}
+  .items{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .ichip{font-size:12.5px;background:var(--g50);border:1px solid var(--g100);border-radius:10px;padding:4px 9px}
+  .ichip b{color:var(--g800)}
+  .ichip em{font-style:normal;color:var(--red);font-size:11.5px}
+  .loss-row{display:flex;align-items:center;gap:8px;font-size:13px;padding:7px 10px;border-radius:10px;background:var(--redbg);margin-bottom:5px}
+  .loss-row .x{margin-left:auto;border:0;background:none;color:var(--red);font-size:16px}
+  .btn.warnb{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+  @media (max-width:640px){ .stats{grid-template-columns:repeat(2,1fr)} }
+  .stat{background:var(--g50);border:1px solid var(--g100);border-radius:12px;padding:9px 11px}
+  .stat .k{font-size:11.5px;color:var(--muted)}
+  .stat .v{font-size:18px;font-weight:600;color:var(--g900);line-height:1.3}
+  .stat.red{background:var(--redbg);border-color:#fecaca} .stat.red .v{color:var(--red)}
+  dialog{border:0;border-radius:18px;padding:18px;width:min(420px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  dialog::backdrop{background:rgba(15,23,42,.45)}
+  footer{text-align:center;color:var(--muted);font-size:12px;padding:10px 0 30px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <div class="logo">🥬</div>
+    <div class="brand">
+      <h1>HydroPlan</h1>
+      <p>วางแผนวันปลูกผักไฮโดรโปนิกส์ · คำนวณย้อนจากวันเก็บ</p>
+    </div>
+    <button class="install-btn" id="btnInstall" hidden>📲 ติดตั้งแอป</button>
+    <div class="sync" id="sync"><span class="dot" id="syncDot"></span><span id="syncText">กำลังเชื่อมต่อ…</span></div>
+  </div>
+</header>
+
+<main>
+  <!-- ============ CALCULATOR ============ -->
+  <section class="card sticky" id="calcCard">
+    <h2>🧮 คำนวณวันปลูก</h2>
+    <div class="seg" id="modeSeg">
+      <button data-mode="back" class="active">🥬 กำหนดวันเก็บ</button>
+      <button data-mode="fwd">🌱 กำหนดวันเพาะ</button>
+    </div>
+
+    <label class="lbl" id="dateLabel">วันที่ต้องการเก็บผลผลิต</label>
+    <input type="date" class="input" id="anchorDate">
+    <div class="date-th" id="anchorTh"></div>
+    <div class="chips" id="quickChips"></div>
+
+    <div class="summary">
+      <div class="sbox seed"><span class="ic">🌱</span><div class="k">เริ่มเพาะเมล็ด</div><div class="v" id="sumSeed">-</div><div class="r" id="sumSeedRel"></div></div>
+      <div class="sbox harv"><span class="ic">🥬</span><div class="k">วันเก็บเกี่ยว</div><div class="v" id="sumHarv">-</div><div class="r" id="sumHarvRel"></div></div>
+    </div>
+    <div class="total">รวมทั้งหมด <b id="sumTotal">0</b> วัน</div>
+    <div id="calcAlert"></div>
+
+    <ul class="tl" id="calcTimeline"></ul>
+
+    <details class="more" open>
+      <summary>💾 บันทึกเป็นรอบปลูก (ซิงก์ทุกเครื่อง)</summary>
+      <label class="lbl">🥬 ผักที่เพาะในรอบนี้ (หน่วย: ต้น)</label>
+      <div id="itemRows"></div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button class="btn ghost sm" id="btnAddItem" type="button">➕ เพิ่มผักอีกชนิด</button>
+        <span class="sub" id="itemTotal"></span>
+      </div>
+      <label class="lbl">ชื่อรอบ (เว้นว่างได้)</label>
+      <input class="input" id="fName" placeholder="เช่น ล็อต A / ส่งร้านคุณเอ">
+      <label class="lbl">หมายเหตุ</label>
+      <input class="input" id="fNote" placeholder="เช่น เมล็ดล็อตใหม่">
+    </details>
+    <datalist id="vegList"></datalist>
+
+    <div class="btns">
+      <button class="btn pri" id="btnSave">💾 บันทึกรอบปลูก</button>
+      <button class="btn sec" id="btnCopy" title="คัดลอกไปวางใน LINE">📋 คัดลอก</button>
+    </div>
+  </section>
+
+  <!-- ============ RIGHT SIDE ============ -->
+  <section>
+    <nav class="tabs" id="tabs">
+      <button data-tab="tasks" class="active">✅ งานที่ต้องทำ <span class="cnt" id="cntTasks">0</span></button>
+      <button data-tab="batches">🪴 รอบปลูก <span class="cnt" id="cntBatches">0</span></button>
+      <button data-tab="calendar">📅 ปฏิทิน</button>
+      <button data-tab="settings">⚙️ ตั้งค่า</button>
+    </nav>
+
+    <div class="card panel active" id="panel-tasks">
+      <h2>✅ งานที่ต้องทำ <span class="sub" id="todayLabel" style="font-weight:400"></span></h2>
+      <div id="taskList"></div>
+    </div>
+
+    <div class="card panel" id="panel-batches">
+      <h2>🪴 รอบปลูกทั้งหมด</h2>
+      <div id="batchStats"></div>
+      <div class="filters" id="batchFilters">
+        <button class="chip active" data-f="active">กำลังปลูก / รอเริ่ม</button>
+        <button class="chip" data-f="harvested">เก็บแล้ว</button>
+        <button class="chip" data-f="all">ทั้งหมด</button>
+      </div>
+      <div id="batchList"></div>
+    </div>
+
+    <div class="card panel" id="panel-calendar">
+      <div class="cal-h">
+        <button class="btn ghost sm" id="calPrev">◀</button>
+        <h3 id="calTitle"></h3>
+        <button class="btn ghost sm" id="calToday">วันนี้</button>
+        <button class="btn ghost sm" id="calNext">▶</button>
+      </div>
+      <div class="cal" id="calGrid"></div>
+      <div class="day-detail" id="dayDetail"></div>
+    </div>
+
+    <div class="card panel" id="panel-settings">
+      <h2>⚙️ ตั้งค่าขั้นตอนการปลูก</h2>
+      <p class="sub" style="margin-top:-6px">แก้ชื่อ/จำนวนวันได้ ใช้กับการคำนวณใหม่ทุกเครื่อง (รอบปลูกที่บันทึกไปแล้วจะไม่เปลี่ยน)</p>
+      <div class="alert ok">🌱 <span>วันแรก = <b>เพาะเมล็ด</b> แล้วเริ่มขั้นตอนแรกทันที · วันสุดท้าย = <b>เก็บเกี่ยว</b></span></div>
+      <div id="stepEditor"></div>
+      <div class="total" style="margin:10px 0">รวม <b id="setTotal">0</b> วัน</div>
+      <div class="btns">
+        <button class="btn ghost" id="btnAddStep">➕ เพิ่มขั้นตอน</button>
+        <button class="btn ghost" id="btnResetStep">↺ ค่าเริ่มต้น</button>
+        <button class="btn pri" id="btnSaveStep">💾 บันทึกการตั้งค่า</button>
+      </div>
+      <h2 style="margin-top:26px">🗄️ สำรองข้อมูล</h2>
+      <p class="sub" style="margin-top:-6px">ดาวน์โหลดข้อมูลทั้งหมดเก็บไว้ในเครื่อง แนะนำให้กดเดือนละครั้ง กันข้อมูลหายหรือถูกลบโดยไม่ตั้งใจ</p>
+      <div class="btns">
+        <button class="btn sec" id="btnExport">⬇️ ดาวน์โหลดไฟล์สำรอง (.json)</button>
+        <button class="btn ghost" id="btnImport">⬆️ กู้คืนข้อมูล (.json)</button>
+        <input type="file" id="importFile" accept=".json,application/json" hidden>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>HydroPlan · ข้อมูลซิงก์แบบเรียลไทม์ผ่าน Firebase</footer>
+<div id="toast"></div>
+
+<!-- Dialog บันทึกผักเสีย -->
+<dialog id="lossDlg">
+  <h3 style="margin:0 0 2px">🥀 บันทึกผักเสีย</h3>
+  <div class="sub" id="lossBatchName"></div>
+  <label class="lbl">ชนิดผัก</label>
+  <select class="input" id="lVeg"></select>
+  <label class="lbl">จำนวนที่เสีย (ต้น)</label>
+  <div style="display:flex;gap:6px;align-items:center">
+    <button class="btn ghost sm" type="button" data-lstep="-1">−</button>
+    <input type="number" min="1" class="input" id="lCount" value="1" inputmode="numeric" style="text-align:center;font-size:18px;font-weight:600">
+    <button class="btn ghost sm" type="button" data-lstep="1">+</button>
+    <button class="btn ghost sm" type="button" data-lstep="5">+5</button>
+    <button class="btn ghost sm" type="button" data-lstep="10">+10</button>
+  </div>
+  <label class="lbl">เสียช่วงไหน</label>
+  <select class="input" id="lStage"></select>
+  <label class="lbl">วันที่</label>
+  <input type="date" class="input" id="lDate">
+  <label class="lbl">สาเหตุ / หมายเหตุ</label>
+  <input class="input" id="lNote" list="lossReasons" placeholder="เช่น ไม่งอก, รากเน่า">
+  <datalist id="lossReasons">
+    <option value="ไม่งอก"><option value="รากเน่า"><option value="ใบเหลือง / เหี่ยว"><option value="แมลง / หนอน">
+    <option value="ต้นยืด / ล้ม"><option value="เสียหายตอนย้าย"><option value="ใบไหม้ / แดดแรง">
+  </datalist>
+  <div class="btns">
+    <button class="btn ghost" type="button" id="lCancel">ยกเลิก</button>
+    <button class="btn pri" type="button" id="lSave">💾 บันทึก</button>
+  </div>
+</dialog>
+
+<!-- Dialog แก้ไขรอบปลูก -->
+<dialog id="editDlg">
+  <h3 style="margin:0 0 2px">✏️ แก้ไขรอบปลูก</h3>
+  <div class="sub" id="editBatchSub"></div>
+  <label class="lbl">ชื่อรอบ</label>
+  <input class="input" id="eName" placeholder="ชื่อรอบ">
+  <label class="lbl">วันเริ่มเพาะ (เลื่อนแผนได้)</label>
+  <div style="display:flex;gap:6px;align-items:center">
+    <button class="btn ghost sm" type="button" data-eshift="-1">-1 วัน</button>
+    <input type="date" class="input" id="eSeed" style="flex:1">
+    <button class="btn ghost sm" type="button" data-eshift="1">+1 วัน</button>
+  </div>
+  <div class="date-th" id="eHarvPreview" style="font-size:13px"></div>
+  <label class="lbl">🥬 ผักในรอบนี้ (หน่วย: ต้น)</label>
+  <div id="eItemRows"></div>
+  <button class="btn ghost sm" id="eAddItem" type="button">➕ เพิ่มผักอีกชนิด</button>
+  <label class="lbl">หมายเหตุ</label>
+  <input class="input" id="eNote" placeholder="หมายเหตุ">
+  <div class="btns">
+    <button class="btn ghost" type="button" id="eCancel">ยกเลิก</button>
+    <button class="btn pri" type="button" id="eSave">💾 บันทึกการแก้ไข</button>
+  </div>
+</dialog>
+
+<!-- Firebase (compat SDK) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+
+<script>
+/* ================= CONFIG ================= */
+const firebaseConfig = {
+  apiKey: "AIzaSyAmAmceLCl40QTnWe3Prso-psMN6jNnY-U",
+  authDomain: "supertest02-689bd.firebaseapp.com",
+  databaseURL: "https://supertest02-689bd-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "supertest02-689bd",
+  storageBucket: "supertest02-689bd.firebasestorage.app",
+  messagingSenderId: "941347468855",
+  appId: "1:941347468855:web:b19101cd3237d1896bb1b2",
+  measurementId: "G-JP0SP2T4KG"
+};
+const ROOT = 'hydroPlanner';
+
+const DEFAULT_STEPS = [
+  { icon:'❄️', name:'แช่ตู้เย็น',            days:2 },
+  { icon:'🌑', name:'พักในที่มืด',           days:1 },
+  { icon:'🧽', name:'ลงฟองน้ำ',             days:7 },
+  { icon:'💧', name:'เติมน้ำปุ๋ย',            days:7 },
+  { icon:'📦', name:'ลงกล่อง',              days:20 },
+  { icon:'🌿', name:'แช่น้ำชีวภาพ (น้ำดี)',    days:7 }
+];
+const PALETTE = ['#16a34a','#0ea5e9','#f59e0b','#8b5cf6','#ef4444','#14b8a6','#ec4899','#84cc16','#6366f1','#f97316'];
+
+/* ================= STATE ================= */
+let steps = clone(DEFAULT_STEPS);
+let draftSteps = clone(DEFAULT_STEPS);
+let draftDirty = false;
+let batches = {};
+let mode = 'back';
+let batchFilter = 'active';
+let openBatches = new Set();
+let calMonth = firstOfMonth(today());
+let calSel = null;
+let db = null;
+
+/* ================= DATE HELPERS ================= */
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+function pad(n){ return String(n).padStart(2,'0'); }
+function ymd(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function parse(s){ const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); }
+function addDays(d,n){ const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate()+n); return x; }
+function today(){ const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), n.getDate()); }
+function diffDays(a,b){ return Math.round((Date.UTC(b.getFullYear(),b.getMonth(),b.getDate()) - Date.UTC(a.getFullYear(),a.getMonth(),a.getDate()))/86400000); }
+function firstOfMonth(d){ return new Date(d.getFullYear(), d.getMonth(), 1); }
+function fmt(d){ return d.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'2-digit'}); }
+function fmtW(d){ return d.toLocaleDateString('th-TH',{weekday:'short',day:'numeric',month:'short',year:'2-digit'}); }
+function fmtLong(d){ return d.toLocaleDateString('th-TH',{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }
+function rel(d){
+  const n = diffDays(today(), d);
+  if(n===0) return 'วันนี้';
+  if(n===1) return 'พรุ่งนี้';
+  if(n===-1) return 'เมื่อวาน';
+  return n>0 ? `อีก ${n} วัน` : `${-n} วันที่แล้ว`;
+}
+function esc(s){ return String(s??'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function totalDays(arr){ return arr.reduce((s,x)=>s+(+x.days||0),0); }
+function colorOf(id){ let h=0; for(const c of id) h=(h*31+c.charCodeAt(0))>>>0; return PALETTE[h%PALETTE.length]; }
+
+/* ================= PLAN ENGINE ================= */
+// คำนวณแผนจาก steps + วันเพาะ
+function buildPlan(stepArr, seedDate){
+  const total = totalDays(stepArr);
+  const harvest = addDays(seedDate, total);
+  let cur = seedDate;
+  const stages = stepArr.map((s,i)=>{
+    const start = cur, end = addDays(cur, +s.days||0);
+    cur = end;
+    return { ...s, index:i, start, end };
+  });
+  const events = stages.map((s,i)=>({
+    key:'s'+i, date:s.start, icon: i===0 ? '🌱' : s.icon,
+    title: i===0 ? `เพาะเมล็ด → ${s.name}` : `ย้าย → ${s.name}`,
+    sub: `${s.icon} ${s.name} ${s.days} วัน (ถึง ${fmt(s.end)})`, days:s.days
+  }));
+  events.push({ key:'harvest', date:harvest, icon:'🥬', title:'เก็บเกี่ยวผลผลิต', sub:`รวม ${total} วัน นับจากวันเพาะ`, days:null });
+  return { seed:seedDate, harvest, total, stages, events };
+}
+function planFromAnchor(stepArr, anchorStr, m){
+  const a = parse(anchorStr);
+  const seed = m==='back' ? addDays(a, -totalDays(stepArr)) : a;
+  return buildPlan(stepArr, seed);
+}
+function planOfBatch(b){ return buildPlan(b.steps, parse(b.seedDate)); }
+
+function batchStatus(b, plan){
+  const t = today();
+  if(b.harvested) return { cls:'doneh', text:'✔ เก็บแล้ว', pct:100 };
+  if(t < plan.seed) return { cls:'wait', text:`⏳ รอเพาะ (${rel(plan.seed)})`, pct:0 };
+  if(t >= plan.harvest) return { cls:'harv', text:'🥬 ถึงวันเก็บแล้ว!', pct:100 };
+  const st = plan.stages.find(s => t >= s.start && t < s.end);
+  const pct = plan.total ? Math.round(diffDays(plan.seed,t)/plan.total*100) : 0;
+  if(!st) return { cls:'', text:'กำลังปลูก', pct };
+  const dayIn = diffDays(st.start,t)+1;
+  return { cls:'', text:`${st.icon} ${st.name} วันที่ ${dayIn}/${st.days}`, pct, stage:st };
+}
+
+/* ================= CALCULATOR ================= */
+const $ = id => document.getElementById(id);
+
+function currentPlan(){
+  const v = $('anchorDate').value;
+  if(!v) return null;
+  return planFromAnchor(steps, v, mode);
+}
+
+function renderQuickChips(){
+  const t = today(), tot = totalDays(steps);
+  let chips;
+  if(mode==='back'){
+    const earliest = addDays(t, tot);
+    chips = [
+      {label:`เร็วสุด (${fmt(earliest)})`, d:earliest},
+      {label:'+1 สัปดาห์', d:addDays(earliest,7)},
+      {label:'+2 สัปดาห์', d:addDays(earliest,14)},
+      {label:'+1 เดือน', d:addDays(earliest,30)}
+    ];
+  } else {
+    chips = [
+      {label:'วันนี้', d:t},{label:'พรุ่งนี้', d:addDays(t,1)},
+      {label:'+3 วัน', d:addDays(t,3)},{label:'+7 วัน', d:addDays(t,7)}
+    ];
+  }
+  $('quickChips').innerHTML = chips.map(c=>`<button class="chip ${$('anchorDate').value===ymd(c.d)?'active':''}" data-d="${ymd(c.d)}">${c.label}</button>`).join('');
+}
+
+function renderCalc(){
+  $('dateLabel').textContent = mode==='back' ? 'วันที่ต้องการเก็บผลผลิต' : 'วันที่เริ่มเพาะเมล็ด';
+  renderQuickChips();
+  const p = currentPlan();
+  if(!p){ $('calcTimeline').innerHTML=''; $('anchorTh').textContent=''; return; }
+  $('anchorTh').textContent = '📆 ' + fmtLong(parse($('anchorDate').value));
+  $('sumSeed').textContent = fmtW(p.seed);
+  $('sumSeedRel').textContent = rel(p.seed);
+  $('sumHarv').textContent = fmtW(p.harvest);
+  $('sumHarvRel').textContent = rel(p.harvest);
+  $('sumTotal').textContent = p.total;
+
+  // alerts
+  const t = today();
+  let al = '';
+  if(p.seed < t){
+    const late = diffDays(p.seed, t);
+    const earliest = addDays(t, p.total);
+    al = `<div class="alert bad">⚠️ <span>วันเพาะผ่านมาแล้ว ${late} วัน — ถ้าเริ่มวันนี้ จะเก็บได้เร็วสุด <b>${fmtW(earliest)}</b> <button data-setharv="${ymd(earliest)}">ใช้วันนี้</button></span></div>`;
+  } else if(diffDays(t,p.seed) <= 3){
+    al = `<div class="alert warn">⏰ <span>ต้องเริ่มเพาะ <b>${rel(p.seed)}</b> เตรียมเมล็ด/ฟองน้ำให้พร้อม</span></div>`;
+  }
+  $('calcAlert').innerHTML = al;
+
+  $('calcTimeline').innerHTML = p.events.map((e,i)=>{
+    const next = p.events[i+1];
+    let cls = '';
+    if(next && t >= e.date && t < next.date) cls='now';
+    else if(e.date < t) cls='past';
+    return `<li class="${cls}">
+      <div class="ico">${e.icon}</div>
+      <div><div class="t">${esc(e.title)}</div><div class="d">${fmtW(e.date)}</div></div>
+      <div>${e.days!=null?`<div class="badge">${e.days} วัน</div>`:''}<div class="rel">${rel(e.date)}</div></div>
+    </li>`;
+  }).join('');
+}
+
+/* ================= ITEMS (ผักหลายชนิด) & LOSSES ================= */
+const DEFAULT_VEGS = ['กรีนโอ๊ค','เรดโอ๊ค','กรีนคอส','เรดคอส','บัตเตอร์เฮด','ฟินเลย์','เรดคอรัล','ร็อคเก็ต','ผักบุ้ง','ผักกาดหอม'];
+let formItems = [{veg:'',qty:''}];
+let lossCtx = null;
+
+function itemsOf(b){
+  if(Array.isArray(b.items) && b.items.length) return b.items.map(i=>({veg:i.veg||'', qty:+i.qty||0}));
+  return [{veg:b.name||'ผัก', qty:parseInt(b.qty)||0}]; // รองรับรอบเก่า
+}
+function lossesOf(b){ return Object.entries(b.losses||{}).map(([k,v])=>({k,...v})).sort((x,y)=>(x.date||'').localeCompare(y.date||'')); }
+function lostByVeg(b){ const m={}; lossesOf(b).forEach(l=>m[l.veg]=(m[l.veg]||0)+(+l.count||0)); return m; }
+function sumQty(b){ return itemsOf(b).reduce((s,i)=>s+i.qty,0); }
+function sumLost(b){ return lossesOf(b).reduce((s,l)=>s+(+l.count||0),0); }
+function itemsText(b){
+  const lost = lostByVeg(b);
+  return itemsOf(b).map(i=>`${i.veg} ${i.qty-(lost[i.veg]||0)}`).join(' · ') + ' ต้น';
+}
+function defaultName(items){ return items.map(i=>i.veg).join(', '); }
+function findDupVeg(arr = formItems){
+  const seen = new Set();
+  for(const i of arr){
+    const veg = String(i.veg).trim(); if(!veg) continue;
+    if(seen.has(veg)) return veg;
+    seen.add(veg);
+  }
+  return null;
+}
+function hasQtyWithoutVeg(arr = formItems){
+  return arr.some(i => !String(i.veg).trim() && (parseInt(i.qty)||0) > 0);
+}
+function cleanFormItems(arr = formItems){
+  return arr.filter(i=>String(i.veg).trim()).map(i=>({veg:String(i.veg).trim(), qty:Math.max(0,parseInt(i.qty)||0)}));
+}
+
+function renderFormItems(){
+  $('itemRows').innerHTML = formItems.map((it,i)=>`<div class="it-row">
+    <input class="input" list="vegList" data-ii="${i}" data-if="veg" value="${esc(it.veg)}" placeholder="ชนิดผัก เช่น กรีนโอ๊ค">
+    <input class="input" type="number" min="0" inputmode="numeric" data-ii="${i}" data-if="qty" value="${esc(it.qty)}" placeholder="ต้น">
+    <button class="btn ghost sm" data-irm="${i}" type="button" title="ลบ">✕</button>
+  </div>`).join('');
+  updateItemTotal();
+}
+function updateItemTotal(){
+  const t = formItems.reduce((s,i)=>s+(parseInt(i.qty)||0),0);
+  $('itemTotal').textContent = t ? `รวม ${t} ต้น` : '';
+}
+function renderVegList(){
+  const set = new Set(DEFAULT_VEGS);
+  Object.values(batches).forEach(b=> b && itemsOf(b).forEach(i=> i.veg && set.add(i.veg)));
+  $('vegList').innerHTML = [...set].map(v=>`<option value="${esc(v)}">`).join('');
+}
+function renderStats(){
+  const all = Object.values(batches).filter(b=>b && b.steps);
+  if(!all.length){ $('batchStats').innerHTML=''; return; }
+  const act = all.filter(b=>!b.harvested);
+  const actPlanted = act.reduce((s,b)=>s+sumQty(b),0);
+  const actLost = act.reduce((s,b)=>s+sumLost(b),0);
+  const allPlanted = all.reduce((s,b)=>s+sumQty(b),0);
+  const byStage = {}, byReason = {}; let allLost = 0;
+  all.forEach(b=> lossesOf(b).forEach(l=>{
+    const c = +l.count||0; allLost += c;
+    byStage[l.stage||'-'] = (byStage[l.stage||'-']||0)+c;
+    if(l.note) byReason[l.note] = (byReason[l.note]||0)+c;
+  }));
+  const top = o => Object.entries(o).sort((a,b)=>b[1]-a[1])[0];
+  const ts = top(byStage), tr = top(byReason);
+  const rate = allPlanted ? ((allPlanted-allLost)/allPlanted*100).toFixed(1) : '-';
+  $('batchStats').innerHTML = `<div class="stats">
+    <div class="stat"><div class="k">🌱 กำลังปลูก (คงเหลือ)</div><div class="v">${(actPlanted-actLost).toLocaleString()} ต้น</div></div>
+    <div class="stat red"><div class="k">🥀 เสีย (รอบที่ปลูกอยู่)</div><div class="v">${actLost.toLocaleString()} ต้น</div></div>
+    <div class="stat"><div class="k">✅ อัตรารอดรวม</div><div class="v">${rate}%</div></div>
+    <div class="stat red"><div class="k">⚠️ เสียบ่อยสุดช่วง</div><div class="v" style="font-size:14px">${ts?esc(ts[0])+' ('+ts[1]+')':'-'}</div></div>
+  </div>${tr?`<div class="sub" style="margin:-4px 0 12px">สาเหตุที่พบบ่อยสุด: <b>${esc(tr[0])}</b> (${tr[1]} ต้น)</div>`:''}`;
+}
+
+function openLoss(id){
+  const b = batches[id]; if(!b) return;
+  const p = planOfBatch(b), lost = lostByVeg(b), s = batchStatus(b,p);
+  lossCtx = id;
+  $('lossBatchName').textContent = `${b.name} · เพาะ ${fmt(p.seed)}`;
+  $('lVeg').innerHTML = itemsOf(b).map(i=>`<option value="${esc(i.veg)}">${esc(i.veg)} (เหลือ ${i.qty-(lost[i.veg]||0)} ต้น)</option>`).join('');
+  const stages = ['ตอนเพาะ / ไม่งอก', ...b.steps.map(x=>x.name), 'ตอนเก็บเกี่ยว'];
+  const cur = s.stage ? s.stage.name : (today() >= p.harvest ? 'ตอนเก็บเกี่ยว' : stages[0]);
+  $('lStage').innerHTML = stages.map(n=>`<option ${n===cur?'selected':''}>${esc(n)}</option>`).join('');
+  $('lCount').value = 1; $('lNote').value = ''; $('lDate').value = ymd(today());
+  $('lossDlg').showModal();
+}
+
+function planText(p, name, items){
+  const lines = [`🥬 แผนปลูก${name?': '+name:''}`];
+  if(items && items.length){
+    items.forEach(i=>lines.push(`   • ${i.veg} ${i.qty} ต้น`));
+    lines.push(`   รวม ${items.reduce((s,i)=>s+i.qty,0)} ต้น`);
+  }
+  p.events.forEach(e => lines.push(`${e.icon} ${fmtW(e.date)} – ${e.title}`));
+  lines.push(`รวม ${p.total} วัน`);
+  return lines.join('\n');
+}
+async function copyText(txt){
+  try{ await navigator.clipboard.writeText(txt); }
+  catch{ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); }
+  toast('📋 คัดลอกแล้ว นำไปวางใน LINE ได้เลย');
+}
+
+/* ================= TASKS ================= */
+function allEvents(includeHarvested=false){
+  const out = [];
+  for(const [id,b] of Object.entries(batches)){
+    if(!b || !Array.isArray(b.steps) || !b.steps.length || !b.seedDate || !b.harvestDate) continue;
+    if(b.harvested && !includeHarvested) continue;
+    const p = planOfBatch(b);
+    p.events.forEach(e => out.push({ ...e, id, b, done: !!(b.done && b.done[e.key]), color: colorOf(id) }));
+  }
+  return out.sort((a,b)=>a.date-b.date);
+}
+function taskHTML(e, showWhen=true){
+  return `<div class="task ${e.done?'done':''}" style="--c:${e.color}">
+    <input type="checkbox" class="chk" data-id="${e.id}" data-key="${e.key}" ${e.done?'checked':''}>
+    <div class="ico2">${e.icon}</div>
+    <div style="min-width:0">
+      <div class="tt">${esc(e.title)}</div>
+      <div class="tm">${e.b.name!==defaultName(itemsOf(e.b))?'<b>'+esc(e.b.name)+'</b> · ':''}${esc(itemsText(e.b))}</div>
+    </div>
+    ${showWhen?`<div class="when">${fmtW(e.date)}<br><b>${rel(e.date)}</b></div>`:''}
+  </div>`;
+}
+function renderTasks(){
+  const t = today();
+  $('todayLabel').textContent = '· ' + fmtLong(t);
+  const ev = allEvents();
+  const overdue = ev.filter(e => e.date < t && !e.done);
+  const tday = ev.filter(e => diffDays(t,e.date)===0);
+  const tmr = ev.filter(e => diffDays(t,e.date)===1);
+  const week = ev.filter(e => { const n=diffDays(t,e.date); return n>=2 && n<=14; });
+  $('cntTasks').textContent = overdue.length + tday.filter(e=>!e.done).length;
+
+  if(!Object.keys(batches).length){
+    $('taskList').innerHTML = `<div class="empty"><div class="e">🌱</div>ยังไม่มีรอบปลูก<br><span class="sub">เลือกวันเก็บด้านซ้าย แล้วกด "บันทึกรอบปลูก"</span></div>`;
+    return;
+  }
+  let h = '';
+  const grp = (title, arr, cls='') => arr.length ? `<div class="group-h ${cls}">${title} <span class="pill">${arr.length}</span></div>` + arr.map(e=>taskHTML(e)).join('') : '';
+  h += grp('🔴 เลยกำหนด (ยังไม่ได้ทำ)', overdue, 'red');
+  h += grp('📍 วันนี้', tday);
+  h += grp('➡️ พรุ่งนี้', tmr);
+  h += grp('🗓️ 14 วันข้างหน้า', week);
+  if(!h) h = `<div class="empty"><div class="e">😌</div>ไม่มีงานในช่วง 2 สัปดาห์นี้</div>`;
+  $('taskList').innerHTML = h;
+}
+
+/* ================= BATCHES ================= */
+function renderBatches(){
+  renderStats();
+  const list = Object.entries(batches).filter(([,b])=>b && Array.isArray(b.steps) && b.steps.length && b.seedDate && b.harvestDate)
+    .filter(([,b]) => batchFilter==='all' ? true : batchFilter==='harvested' ? b.harvested : !b.harvested)
+    .sort((a,b)=> a[1].harvestDate.localeCompare(b[1].harvestDate));
+  $('cntBatches').textContent = Object.values(batches).filter(b=>b && !b.harvested).length;
+  if(!list.length){
+    $('batchList').innerHTML = `<div class="empty"><div class="e">🪴</div>ไม่มีรอบปลูกในหมวดนี้</div>`;
+    return;
+  }
+  $('batchList').innerHTML = list.map(([id,b])=>{
+    const p = planOfBatch(b), s = batchStatus(b,p), c = colorOf(id), lost = lostByVeg(b), losses = lossesOf(b);
+    const segs = p.stages.map((st,i)=>`<span title="${esc(st.name)}" style="width:${st.days/p.total*100}%;background:${c};opacity:${0.25+0.75*(i+1)/p.stages.length}"></span>`).join('');
+    const open = openBatches.has(id);
+    return `<div class="batch" style="--c:${c}">
+      <div class="b-top">
+        <div style="min-width:0">
+          <div class="b-name">${esc(b.name)}</div>
+          <div class="b-meta">🌱 ${fmt(p.seed)} → 🥬 ${fmt(p.harvest)} · ${sumQty(b)-sumLost(b)}/${sumQty(b)} ต้น</div>
+          ${b.note?`<div class="b-meta">📝 ${esc(b.note)}</div>`:''}
+        </div>
+        <div class="b-stage"><span class="tag ${s.cls}">${s.text}</span></div>
+      </div>
+      <div class="items">${itemsOf(b).map(i=>{ const l=lost[i.veg]||0; return `<span class="ichip">🥬 ${esc(i.veg)} <b>${i.qty-l}</b>/${i.qty} ต้น${l?` <em>เสีย ${l}</em>`:''}</span>`; }).join('')}</div>
+      <div class="prog" style="position:relative">${segs}</div>
+      <div class="prog-l"><span>ผ่านไป ${Math.max(0,Math.min(100,s.pct))}%</span><span>${b.harvested?'':'🥬 วันเก็บ: '+rel(p.harvest)}</span></div>
+      <div class="b-actions">
+        <button class="btn ghost sm" data-act="toggle" data-id="${id}">${open?'▲ ซ่อน':'▼ ดูขั้นตอน'}</button>
+        <button class="btn ghost sm" data-act="copy" data-id="${id}">📋 คัดลอก</button>
+        <button class="btn warnb sm" data-act="loss" data-id="${id}">🥀 ผักเสีย${losses.length?' ('+sumLost(b)+')':''}</button>
+        <button class="btn ghost sm" data-act="edit" data-id="${id}">✏️ แก้ไข</button>
+        <button class="btn sec sm" data-act="harvest" data-id="${id}">${b.harvested?'↺ ยังไม่เก็บ':'✔ เก็บแล้ว'}</button>
+        <button class="btn danger sm" data-act="del" data-id="${id}">🗑 ลบ</button>
+      </div>
+      ${open?`<div class="b-detail">${p.events.map(e=>taskHTML({...e,id,b,done:!!(b.done&&b.done[e.key]),color:c})).join('')}
+        ${losses.length?`<div class="group-h red" style="margin-top:12px">🥀 ประวัติผักเสีย <span class="pill">${sumLost(b)} ต้น</span></div>`+
+          losses.map(l=>`<div class="loss-row"><span>${l.date?fmt(parse(l.date)):''}</span><b>${esc(l.veg)} −${+l.count||0}</b><span class="sub">${esc(l.stage||'')}${l.note?' · '+esc(l.note):''}</span><button class="x" data-act="delloss" data-id="${id}" data-k="${l.k}" title="ลบรายการนี้">✕</button></div>`).join(''):''}
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* ================= CALENDAR ================= */
+function renderCalendar(){
+  $('calTitle').textContent = calMonth.toLocaleDateString('th-TH',{month:'long',year:'numeric'});
+  const ev = allEvents(true);
+  const map = {};
+  ev.forEach(e => (map[ymd(e.date)] ||= []).push(e));
+  const start = addDays(calMonth, -calMonth.getDay());
+  const t = ymd(today());
+  let h = ['อา','จ','อ','พ','พฤ','ศ','ส'].map(d=>`<div class="wd">${d}</div>`).join('');
+  for(let i=0;i<42;i++){
+    const d = addDays(start,i), k = ymd(d), list = map[k]||[];
+    if(i===35 && d.getMonth()!==calMonth.getMonth()) break;
+    h += `<div class="cell ${d.getMonth()!==calMonth.getMonth()?'out':''} ${k===t?'today':''} ${k===calSel?'sel':''}" data-day="${k}">
+      <div class="n">${d.getDate()}</div>
+      ${list.slice(0,3).map(e=>`<div class="ev" style="background:${e.color}">${e.icon} ${esc(e.b.name)}</div>`).join('')}
+      ${list.length>3?`<div class="sub" style="font-size:10px">+${list.length-3}</div>`:''}
+      <div class="dots">${list.map(e=>`<i style="background:${e.color}"></i>`).join('')}</div>
+    </div>`;
+  }
+  $('calGrid').innerHTML = h;
+  if(calSel){
+    const list = map[calSel]||[];
+    $('dayDetail').innerHTML = `<div class="group-h">📆 ${fmtLong(parse(calSel))} <span class="pill">${list.length}</span></div>` +
+      (list.length ? list.map(e=>taskHTML(e,false)).join('') : `<div class="sub">ไม่มีงานในวันนี้</div>`);
+  } else $('dayDetail').innerHTML = `<div class="sub" style="text-align:center">แตะวันที่เพื่อดูรายละเอียด</div>`;
+}
+
+/* ================= SETTINGS ================= */
+function renderSettings(){
+  $('stepEditor').innerHTML = draftSteps.map((s,i)=>`
+    <div class="st-row">
+      <input class="input icon-in" data-i="${i}" data-f="icon" value="${esc(s.icon)}" maxlength="4">
+      <input class="input" data-i="${i}" data-f="name" value="${esc(s.name)}" placeholder="ชื่อขั้นตอน">
+      <input class="input" type="number" min="0" inputmode="numeric" data-i="${i}" data-f="days" value="${s.days}" title="จำนวนวัน">
+      <div class="st-ctrl">
+        <button data-mv="-1" data-i="${i}" title="ขึ้น">↑</button>
+        <button data-mv="1" data-i="${i}" title="ลง">↓</button>
+        <button data-rm="${i}" title="ลบ">✕</button>
+      </div>
+    </div>`).join('');
+  $('setTotal').textContent = totalDays(draftSteps);
+}
+
+/* ================= FIREBASE ================= */
+function setSync(state, text){
+  $('syncDot').className = 'dot ' + (state||'');
+  $('syncText').textContent = text;
+}
+function initFirebase(){
+  try{
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.database();
+    db.ref('.info/connected').on('value', s => s.val() ? setSync('on','ซิงก์แล้ว') : setSync('off','ออฟไลน์'));
+    db.ref(ROOT+'/settings/steps').on('value', s=>{
+      const v = s.val();
+      steps = (Array.isArray(v) && v.length) ? v.map(x=>({icon:x.icon||'🌱',name:x.name||'',days:+x.days||0})) : clone(DEFAULT_STEPS);
+      if(!draftDirty){ draftSteps = clone(steps); renderSettings(); }
+      saveCache(); renderCalc();
+    }, err => { console.error(err); setSync('off','ไม่มีสิทธิ์เข้าถึง DB'); toast('❌ อ่านข้อมูลไม่ได้: ตรวจสอบ Rules ของ Firebase'); });
+    db.ref(ROOT+'/batches').on('value', s=>{
+      batches = s.val() || {}; saveCache(); renderVegList();
+      renderTasks(); renderBatches(); renderCalendar();
+    }, err => console.error(err));
+  }catch(e){
+    console.error(e);
+    setSync('off','เชื่อมต่อ Firebase ไม่ได้');
+  }
+}
+function requireDb(){
+  if(!db){ toast('❌ ยังไม่ได้เชื่อมต่อฐานข้อมูล'); return false; }
+  return true;
+}
+
+/* ================= EVENTS ================= */
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+$('modeSeg').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(!b) return;
+  const p = currentPlan();
+  mode = b.dataset.mode;
+  document.querySelectorAll('#modeSeg button').forEach(x=>x.classList.toggle('active', x===b));
+  // แปลงวันให้ตรงกับโหมดใหม่ โดยแผนเดิมไม่เปลี่ยน
+  if(p) $('anchorDate').value = ymd(mode==='back' ? p.harvest : p.seed);
+  renderCalc();
+});
+$('anchorDate').addEventListener('input', renderCalc);
+$('quickChips').addEventListener('click', e=>{
+  const b = e.target.closest('[data-d]'); if(!b) return;
+  $('anchorDate').value = b.dataset.d; renderCalc();
+});
+$('calcAlert').addEventListener('click', e=>{
+  const b = e.target.closest('[data-setharv]'); if(!b) return;
+  if(mode==='back') $('anchorDate').value = b.dataset.setharv;
+  else $('anchorDate').value = ymd(today());
+  renderCalc();
+});
+$('btnCopy').addEventListener('click', ()=>{
+  const p = currentPlan(); if(!p) return toast('กรุณาเลือกวันที่ก่อน');
+  if(hasQtyWithoutVeg()) return toast('🥬 มีแถวที่ใส่จำนวนต้นแต่ยังไม่ใส่ชื่อผัก');
+  const dup = findDupVeg();
+  if(dup) return toast(`⚠️ มีชื่อผักซ้ำ: ${dup} (กรุณาแก้ไขหรือรวมในบรรทัดเดียว)`);
+  const items = cleanFormItems();
+  copyText(planText(p, $('fName').value.trim() || defaultName(items), items));
+});
+$('btnSave').addEventListener('click', async ()=>{
+  const p = currentPlan(); if(!p) return toast('กรุณาเลือกวันที่ก่อน');
+  if(!requireDb()) return;
+  if(hasQtyWithoutVeg()) return toast('🥬 มีแถวที่ใส่จำนวนต้นแต่ยังไม่ใส่ชื่อผัก');
+  const dup = findDupVeg();
+  if(dup) return toast(`⚠️ มีชื่อผักซ้ำ: ${dup} (กรุณาแก้ไขหรือรวมในบรรทัดเดียว)`);
+  const items = cleanFormItems();
+  if(!items.length) return toast('🥬 กรุณาใส่ชนิดผักอย่างน้อย 1 อย่าง');
+  if(items.some(i=>!i.qty)) return toast('🔢 กรุณาใส่จำนวนต้นให้ครบทุกชนิด');
+  const name = $('fName').value.trim() || defaultName(items);
+  // ถ้าบันทึกรอบที่เริ่มไปแล้ว (วันเพาะในอดีต) ให้ติ๊กงานที่ผ่านมาแล้วให้อัตโนมัติ จะได้ไม่ขึ้น "เลยกำหนด"
+  const done = {};
+  p.events.forEach(ev=>{ if(ev.date < today() && ev.key!=='harvest') done[ev.key] = true; });
+  try{
+    await db.ref(ROOT+'/batches').push({
+      name, items, note:$('fNote').value.trim(), done,
+      seedDate: ymd(p.seed), harvestDate: ymd(p.harvest),
+      steps: clone(steps), harvested:false, createdAt: Date.now()
+    });
+    $('fName').value=''; $('fNote').value='';
+    formItems = [{veg:'',qty:''}]; renderFormItems();
+    toast('✅ บันทึกรอบปลูกแล้ว ซิงก์ทุกเครื่อง');
+    switchTab('batches');
+  }catch(err){ console.error(err); toast('❌ บันทึกไม่สำเร็จ: '+err.message); }
+});
+
+function switchTab(name){
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('active', b.dataset.tab===name));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active', p.id==='panel-'+name));
+}
+$('tabs').addEventListener('click', e=>{
+  const b = e.target.closest('button'); if(b) switchTab(b.dataset.tab);
+});
+
+// checkbox ทุกที่
+document.addEventListener('change', e=>{
+  if(!e.target.classList.contains('chk')) return;
+  if(!requireDb()){ e.target.checked = !e.target.checked; return; }
+  const { id, key } = e.target.dataset;
+  const upd = { [`done/${key}`]: e.target.checked ? true : null };
+  if(key==='harvest') upd.harvested = e.target.checked; // ติ๊กเก็บเกี่ยว = ย้ายรอบไป "เก็บแล้ว"
+  db.ref(`${ROOT}/batches/${id}`).update(upd);
+  if(e.target.checked) toast(key==='harvest' ? '🥬 เก็บเกี่ยวเรียบร้อย!' : '👍 ทำเสร็จแล้ว');
+});
+
+$('batchFilters').addEventListener('click', e=>{
+  const b = e.target.closest('[data-f]'); if(!b) return;
+  batchFilter = b.dataset.f;
+  document.querySelectorAll('#batchFilters .chip').forEach(x=>x.classList.toggle('active', x===b));
+  renderBatches();
+});
+$('batchList').addEventListener('click', e=>{
+  const b = e.target.closest('[data-act]'); if(!b) return;
+  const id = b.dataset.id, bt = batches[id]; if(!bt) return;
+  switch(b.dataset.act){
+    case 'toggle': openBatches.has(id) ? openBatches.delete(id) : openBatches.add(id); renderBatches(); break;
+    case 'copy': {
+      const lost = lostByVeg(bt);
+      copyText(planText(planOfBatch(bt), bt.name, itemsOf(bt).map(i=>({veg:i.veg, qty:i.qty-(lost[i.veg]||0)}))));
+      break;
+    }
+    case 'loss': openLoss(id); break;
+    case 'edit': openEdit(id); break;
+    case 'delloss':
+      if(confirm('ลบรายการผักเสียนี้?') && requireDb()) db.ref(`${ROOT}/batches/${id}/losses/${b.dataset.k}`).remove();
+      break;
+    case 'harvest': if(requireDb()) db.ref(`${ROOT}/batches/${id}`).update({ harvested: !bt.harvested, 'done/harvest': !bt.harvested ? true : null }); break;
+    case 'del':
+      if(confirm(`ลบรอบ "${bt.name}" ?\n(ลบแล้วจะหายจากทุกเครื่อง)`) && requireDb()){
+        db.ref(`${ROOT}/batches/${id}`).remove(); toast('🗑 ลบแล้ว');
+      }
+      break;
+  }
+});
+
+$('calPrev').onclick = ()=>{ calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()-1, 1); renderCalendar(); };
+$('calNext').onclick = ()=>{ calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth()+1, 1); renderCalendar(); };
+$('calToday').onclick = ()=>{ calMonth = firstOfMonth(today()); calSel = ymd(today()); renderCalendar(); };
+$('calGrid').addEventListener('click', e=>{
+  const c = e.target.closest('[data-day]'); if(!c) return;
+  calSel = c.dataset.day; renderCalendar();
+});
+
+// settings editor
+$('stepEditor').addEventListener('input', e=>{
+  const { i, f } = e.target.dataset; if(i==null) return;
+  draftSteps[i][f] = f==='days' ? Math.max(0, parseInt(e.target.value)||0) : e.target.value;
+  draftDirty = true;
+  $('setTotal').textContent = totalDays(draftSteps);
+});
+$('stepEditor').addEventListener('click', e=>{
+  const mv = e.target.closest('[data-mv]'), rm = e.target.closest('[data-rm]');
+  if(mv){
+    const i = +mv.dataset.i, j = i + +mv.dataset.mv;
+    if(j<0 || j>=draftSteps.length) return;
+    [draftSteps[i], draftSteps[j]] = [draftSteps[j], draftSteps[i]];
+  } else if(rm){
+    if(draftSteps.length<=1) return toast('ต้องมีอย่างน้อย 1 ขั้นตอน');
+    draftSteps.splice(+rm.dataset.rm, 1);
+  } else return;
+  draftDirty = true; renderSettings();
+});
+$('btnAddStep').onclick = ()=>{ draftSteps.push({icon:'🌱',name:'ขั้นตอนใหม่',days:1}); draftDirty=true; renderSettings(); };
+$('btnResetStep').onclick = ()=>{ draftSteps = clone(DEFAULT_STEPS); draftDirty=true; renderSettings(); toast('↺ คืนค่าเริ่มต้นแล้ว กด "บันทึก" เพื่อใช้งาน'); };
+$('btnSaveStep').onclick = async ()=>{
+  if(draftSteps.some(s=>!String(s.name).trim())) return toast('กรุณาใส่ชื่อขั้นตอนให้ครบ');
+  if(totalDays(draftSteps) < 1) return toast('จำนวนวันรวมต้องมากกว่า 0');
+  if(!requireDb()) return;
+  try{
+    await db.ref(ROOT+'/settings/steps').set(draftSteps.map(s=>({icon:s.icon||'🌱',name:s.name.trim(),days:+s.days||0})));
+    draftDirty = false; toast('✅ บันทึกการตั้งค่าแล้ว');
+  }catch(err){ toast('❌ บันทึกไม่สำเร็จ: '+err.message); }
+};
+
+/* ================= INIT ================= */
+// โหลดข้อมูลล่าสุดที่เก็บไว้ในเครื่อง → เปิดแอปตอนเน็ตไม่มีก็ยังเห็นข้อมูล
+try{
+  const cached = JSON.parse(localStorage.getItem('hydroCache')||'null');
+  if(cached){
+    if(Array.isArray(cached.steps) && cached.steps.length){ steps = cached.steps; draftSteps = clone(steps); }
+    if(cached.batches) batches = cached.batches;
+  }
+}catch(e){}
+function saveCache(){ try{ localStorage.setItem('hydroCache', JSON.stringify({steps, batches})); }catch(e){} }
+function renderAll(){ renderCalc(); renderTasks(); renderBatches(); renderCalendar(); }
+
+$('btnExport').onclick = ()=>{
+  const data = { exportedAt: new Date().toISOString(), steps, batches };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(data,null,2)], {type:'application/json'}));
+  a.download = `hydroplan-backup-${ymd(today())}.json`;
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  toast('⬇️ ดาวน์โหลดไฟล์สำรองแล้ว');
+};
+$('btnImport').onclick = ()=> $('importFile').click();
+$('importFile').onchange = async e=>{
+  const f = e.target.files[0]; e.target.value = ''; if(!f || !requireDb()) return;
+  try{
+    const data = JSON.parse(await f.text());
+    if(!data || typeof data !== 'object' || (!data.batches && !Array.isArray(data.steps))){
+      return toast('❌ ไฟล์สำรองไม่ถูกต้อง');
+    }
+    const cnt = data.batches ? Object.keys(data.batches).length : 0;
+    if(!confirm(`กู้คืนข้อมูลจาก "${f.name}" ?\n(มี ${cnt} รอบปลูก — ข้อมูลปัจจุบันจะถูกแทนที่)`)) return;
+    const upd = {};
+    if(Array.isArray(data.steps) && data.steps.length) upd['settings/steps'] = data.steps;
+    if(data.batches !== undefined) upd['batches'] = data.batches || {};
+    await db.ref(ROOT).update(upd);
+    toast('✅ กู้คืนข้อมูลเรียบร้อยแล้ว');
+  }catch(err){ console.error(err); toast('❌ อ่านไฟล์ไม่สำเร็จ: '+err.message); }
+};
+$('anchorDate').value = ymd(addDays(today(), totalDays(steps)));
+renderCalc(); renderSettings(); renderTasks(); renderBatches(); renderCalendar();
+renderFormItems(); renderVegList();
+initFirebase();
+
+// ฟอร์มรายการผัก
+$('itemRows').addEventListener('input', e=>{
+  const { ii, if:f } = e.target.dataset; if(ii==null) return;
+  formItems[ii][f] = e.target.value; updateItemTotal();
+});
+$('itemRows').addEventListener('click', e=>{
+  const b = e.target.closest('[data-irm]'); if(!b) return;
+  formItems.splice(+b.dataset.irm, 1);
+  if(!formItems.length) formItems = [{veg:'',qty:''}];
+  renderFormItems();
+});
+$('btnAddItem').onclick = ()=>{
+  formItems.push({veg:'',qty:''}); renderFormItems();
+  const ins = $('itemRows').querySelectorAll('[data-if=veg]'); ins[ins.length-1].focus();
+};
+
+// Dialog ผักเสีย
+document.querySelectorAll('[data-lstep]').forEach(b=> b.onclick = ()=>{
+  $('lCount').value = Math.max(1, (parseInt($('lCount').value)||0) + +b.dataset.lstep);
+});
+$('lCancel').onclick = ()=> $('lossDlg').close();
+$('lSave').onclick = async ()=>{
+  const b = batches[lossCtx]; if(!b || !requireDb()) return;
+  const veg = $('lVeg').value, count = parseInt($('lCount').value)||0;
+  if(count < 1) return toast('กรุณาใส่จำนวนอย่างน้อย 1 ต้น');
+  const item = itemsOf(b).find(i=>i.veg===veg);
+  const remain = item ? item.qty - (lostByVeg(b)[veg]||0) : 0;
+  if(count > remain && !confirm(`${veg} เหลือแค่ ${remain} ต้น แต่บันทึกเสีย ${count} ต้น\nยืนยันบันทึก?`)) return;
+  try{
+    await db.ref(`${ROOT}/batches/${lossCtx}/losses`).push({
+      veg, count, stage:$('lStage').value, note:$('lNote').value.trim(),
+      date:$('lDate').value || ymd(today()), at:Date.now()
+    });
+    $('lossDlg').close(); openBatches.add(lossCtx);
+    toast(`🥀 บันทึก ${veg} เสีย ${count} ต้นแล้ว`);
+  }catch(err){ toast('❌ บันทึกไม่สำเร็จ: '+err.message); }
+};
+
+// Dialog แก้ไขรอบปลูก
+let editCtx = null, editItems = [];
+function renderEditItems(){
+  $('eItemRows').innerHTML = editItems.map((it,i)=>`<div class="it-row">
+    <input class="input" list="vegList" data-ei="${i}" data-ef="veg" value="${esc(it.veg)}" placeholder="ชนิดผัก">
+    <input class="input" type="number" min="0" inputmode="numeric" data-ei="${i}" data-ef="qty" value="${esc(it.qty)}" placeholder="ต้น">
+    <button class="btn ghost sm" data-erm="${i}" type="button" title="ลบ">✕</button>
+  </div>`).join('');
+}
+function updateEditPreview(){
+  const b = batches[editCtx]; if(!b || !$('eSeed').value) return;
+  const p = buildPlan(b.steps, parse($('eSeed').value));
+  $('eHarvPreview').textContent = `🥬 วันเก็บใหม่: ${fmtW(p.harvest)} (${rel(p.harvest)})`;
+}
+function openEdit(id){
+  const b = batches[id]; if(!b) return;
+  editCtx = id;
+  editItems = itemsOf(b).map(i=>({...i}));
+  $('editBatchSub').textContent = `สร้างจากสูตร ${totalDays(b.steps)} วัน`;
+  $('eName').value = b.name || '';
+  $('eSeed').value = b.seedDate;
+  $('eNote').value = b.note || '';
+  renderEditItems(); updateEditPreview();
+  $('editDlg').showModal();
+}
+$('eSeed').addEventListener('input', updateEditPreview);
+document.querySelectorAll('[data-eshift]').forEach(btn=> btn.onclick = ()=>{
+  if(!$('eSeed').value) return;
+  $('eSeed').value = ymd(addDays(parse($('eSeed').value), +btn.dataset.eshift));
+  updateEditPreview();
+});
+$('eItemRows').addEventListener('input', e=>{
+  const { ei, ef } = e.target.dataset; if(ei==null) return;
+  editItems[ei][ef] = e.target.value;
+});
+$('eItemRows').addEventListener('click', e=>{
+  const btn = e.target.closest('[data-erm]'); if(!btn) return;
+  editItems.splice(+btn.dataset.erm, 1);
+  if(!editItems.length) editItems = [{veg:'',qty:''}];
+  renderEditItems();
+});
+$('eAddItem').onclick = ()=>{
+  editItems.push({veg:'',qty:''}); renderEditItems();
+  const ins = $('eItemRows').querySelectorAll('[data-ef=veg]'); ins[ins.length-1].focus();
+};
+$('eCancel').onclick = ()=> $('editDlg').close();
+$('eSave').onclick = async ()=>{
+  const b = batches[editCtx]; if(!b || !requireDb()) return;
+  if(!$('eSeed').value) return toast('กรุณาเลือกวันเริ่มเพาะ');
+  if(hasQtyWithoutVeg(editItems)) return toast('🥬 มีแถวที่ใส่จำนวนต้นแต่ยังไม่ใส่ชื่อผัก');
+  const dup = findDupVeg(editItems);
+  if(dup) return toast(`⚠️ มีชื่อผักซ้ำ: ${dup} (กรุณาแก้ไขหรือรวมในบรรทัดเดียว)`);
+  const items = cleanFormItems(editItems);
+  if(!items.length) return toast('🥬 กรุณาใส่ชนิดผักอย่างน้อย 1 อย่าง');
+  if(items.some(i=>!i.qty)) return toast('🔢 กรุณาใส่จำนวนต้นให้ครบทุกชนิด');
+  const p = buildPlan(b.steps, parse($('eSeed').value));
+  const name = $('eName').value.trim() || defaultName(items);
+  try{
+    await db.ref(`${ROOT}/batches/${editCtx}`).update({
+      name, items, note: $('eNote').value.trim(),
+      seedDate: ymd(p.seed), harvestDate: ymd(p.harvest)
+    });
+    $('editDlg').close();
+    toast('✅ แก้ไขรอบปลูกแล้ว');
+  }catch(err){ toast('❌ บันทึกไม่สำเร็จ: '+err.message); }
+};
+// รีเฟรชข้อความ "วันนี้/อีก x วัน" ทุกชั่วโมง และทุกครั้งที่กลับมาเปิดแอป (เช่น เปิดมือถือวันรุ่งขึ้น)
+setInterval(renderAll, 3600000);
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) renderAll(); });
+
+/* ================= PWA (ติดตั้งเป็นแอปบนมือถือ) ================= */
+if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+  window.addEventListener('load', ()=> navigator.serviceWorker.register('sw.js').catch(console.error));
+}
+let deferredPrompt = null;
+const isStandalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault(); deferredPrompt = e; $('btnInstall').hidden = false;
+});
+window.addEventListener('appinstalled', ()=>{ $('btnInstall').hidden = true; toast('🎉 ติดตั้งแอปแล้ว ดูไอคอนที่หน้าจอหลัก'); });
+if(isIOS && !isStandalone) $('btnInstall').hidden = false;
+$('btnInstall').addEventListener('click', async ()=>{
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    await deferredPrompt.userChoice; deferredPrompt = null; $('btnInstall').hidden = true;
+  } else if(isIOS){
+    const tip = document.createElement('div');
+    tip.className = 'ios-tip';
+    tip.innerHTML = `<button class="x">×</button><b>📲 ติดตั้งบน iPhone / iPad</b><br>
+      1. เปิดหน้านี้ด้วย <b>Safari</b><br>
+      2. กดปุ่ม <b>แชร์</b> (สี่เหลี่ยมมีลูกศรชี้ขึ้น ⬆️)<br>
+      3. เลือก <b>"เพิ่มไปยังหน้าจอโฮม"</b> แล้วกด <b>เพิ่ม</b>`;
+    tip.querySelector('.x').onclick = ()=> tip.remove();
+    document.body.appendChild(tip);
+  }
+});
+</script>
+</body>
+</html>
